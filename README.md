@@ -1,8 +1,7 @@
 # Physics Engine
 
-Physics Engine written in go using raylib.
+3D Physics Engine written in go using raylib.
 
 ## Todo
 
-- [ ] Allow for user input in velocity
-- [ ] Add viewport
+- [ ] Create 3D :sob:

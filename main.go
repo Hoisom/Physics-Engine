@@ -4,58 +4,63 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-type projectile struct {
-	xVel   float32
-	yVel   float32
-	xAccel float32
-	yAccel float32
-	body   rl.Rectangle
-}
-
-var started bool = false
-var object projectile = projectile{10, -10, 0, 0.3, rl.Rectangle{10, 399, 10, 10}}
-
-func update() {
-	if started == true && object.body.Y < 400 {
-		object.body.X += object.xVel
-		object.xVel += object.xAccel
-		object.body.Y += object.yVel
-		object.yVel += object.yAccel
-	}
-}
-
-func render() {
-	rl.BeginDrawing()
-	rl.ClearBackground(rl.RayWhite)
-	rl.DrawLine(0, 410, 800, 410, rl.Black)
-	rl.DrawText("Press any key to start", 5, 5, 15, rl.Gray)
-	rl.DrawText("R - restart", 5, 26, 15, rl.Gray)
-
-	rl.DrawRectangleRec(object.body, rl.Red)
-
-	rl.EndDrawing()
-}
-
-func restart() {
-	started = false
-	object = projectile{10, -10, 0, 0.3, rl.Rectangle{10, 399, 10, 10}}
-}
-
 func main() {
-	rl.InitWindow(800, 450, "raylib [core] example - basic window")
+	const screenWidth int32 = 800
+	const screenHeight int32 = 450
+
+	rl.InitWindow(screenWidth, screenHeight, "raylib [core] example - 3d camera free")
 	defer rl.CloseWindow()
 
-	rl.SetTargetFPS(60)
+	// Define the camera to look into our 3d world
+	var camera rl.Camera3D
+	camera.Position = rl.Vector3{10.0, 10.0, 10.0} // Camera position
+	camera.Target = rl.Vector3{0.0, 0.0, 0.0}      // Camera looking at point
+	camera.Up = rl.Vector3{0.0, 1.0, 0.0}          // Camera up vector (rotation towards target)
+	camera.Fovy = 45.0                             // Camera field-of-view Y
+	camera.Projection = rl.CameraPerspective       // Camera projection type
 
+	cubePosition := rl.Vector3{0.0, 0.0, 0.0}
+
+	rl.DisableCursor() // Limit cursor to relative movement inside the window
+
+	rl.SetTargetFPS(60) // Set our game to run at 60 frames-per-second
+	//--------------------------------------------------------------------------------------
+
+	// Main game loop
 	for !rl.WindowShouldClose() {
-		getInput := rl.GetKeyPressed()
-		if getInput != 0 {
-			started = true
+		// Update
+		//----------------------------------------------------------------------------------
+		rl.UpdateCamera(&camera, rl.CameraFree)
+
+		if rl.IsKeyPressed('Z') {
+			camera.Target = rl.Vector3{0.0, 0.0, 0.0}
 		}
-		if getInput == 82 {
-			restart()
-		}
-		update()
-		render()
+		//----------------------------------------------------------------------------------
+
+		// Draw
+		//----------------------------------------------------------------------------------
+		rl.BeginDrawing()
+
+		rl.ClearBackground(rl.RayWhite)
+
+		rl.BeginMode3D(camera)
+
+		rl.DrawCube(cubePosition, 2.0, 2.0, 2.0, rl.Red)
+		rl.DrawCubeWires(cubePosition, 2.0, 2.0, 2.0, rl.Maroon)
+
+		rl.DrawGrid(10, 1.0)
+
+		rl.EndMode3D()
+
+		rl.DrawRectangle(10, 10, 320, 93, rl.Fade(rl.SkyBlue, 0.5))
+		rl.DrawRectangleLines(10, 10, 320, 93, rl.Blue)
+
+		rl.DrawText("Free camera default controls:", 20, 20, 10, rl.Black)
+		rl.DrawText("- Mouse Wheel to Zoom in-out", 40, 40, 10, rl.DarkGray)
+		rl.DrawText("- Mouse Wheel Pressed to Pan", 40, 60, 10, rl.DarkGray)
+		rl.DrawText("- Z to zoom to (0, 0, 0)", 40, 80, 10, rl.DarkGray)
+
+		rl.EndDrawing()
+		//----------------------------------------------------------------------------------
 	}
 }
